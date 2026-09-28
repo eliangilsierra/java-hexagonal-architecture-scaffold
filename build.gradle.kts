@@ -20,11 +20,21 @@ repositories {
 
 val mapstructVersion = "1.5.5.Final"
 val testcontainersVersion = "1.20.1"
+val springCloudAwsVersion = "3.1.1"
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
+	implementation("org.springframework.boot:spring-boot-starter-actuator")
+
+	implementation("io.awspring.cloud:spring-cloud-aws-starter-sns")
+	implementation("io.awspring.cloud:spring-cloud-aws-starter-sqs")
+
+	implementation("io.github.resilience4j:resilience4j-spring-boot3:2.2.0")
+
+	implementation("io.micrometer:micrometer-tracing-bridge-otel")
+	implementation("io.opentelemetry:opentelemetry-exporter-logging")
 
 	runtimeOnly("com.h2database:h2")
 
@@ -40,6 +50,7 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:postgresql")
+	testImplementation("org.testcontainers:localstack")
 	testImplementation("org.postgresql:postgresql")
 	testImplementation("org.awaitility:awaitility")
 }
@@ -47,6 +58,7 @@ dependencies {
 dependencyManagement {
 	imports {
 		mavenBom("org.testcontainers:testcontainers-bom:$testcontainersVersion")
+		mavenBom("io.awspring.cloud:spring-cloud-aws-dependencies:$springCloudAwsVersion")
 	}
 }
 
