@@ -16,15 +16,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Exercises the real, wired-up application (H2 swapped for a real Postgres
- * container — see ADR-0004) end to end through its HTTP API, and proves the
- * eventually-consistent flow this branch introduced: right after creation the
- * order is {@code CREATED}; the {@code @Async} event listener flips it to
- * {@code NOTIFIED} moments later, off the request thread.
+ * container, and a real RabbitMQ broker instead of an in-process event — see
+ * ADR-0004 and ADR-0005) end to end through its HTTP API, proving the
+ * eventually-consistent flow: right after creation the order is
+ * {@code CREATED}; the RabbitMQ listener flips it to {@code NOTIFIED} once the
+ * message round-trips through the broker.
  */
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -33,12 +35,20 @@ class OrderControllerIntegrationTest {
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
+    @Container
+    static RabbitMQContainer rabbitmq = new RabbitMQContainer("rabbitmq:3.13-management-alpine");
+
     @DynamicPropertySource
-    static void datasourceProperties(DynamicPropertyRegistry registry) {
+    static void containerProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("spring.datasource.driver-class-name", postgres::getDriverClassName);
+
+        registry.add("spring.rabbitmq.host", rabbitmq::getHost);
+        registry.add("spring.rabbitmq.port", rabbitmq::getAmqpPort);
+        registry.add("spring.rabbitmq.username", rabbitmq::getAdminUsername);
+        registry.add("spring.rabbitmq.password", rabbitmq::getAdminPassword);
     }
 
     @LocalServerPort
@@ -59,7 +69,7 @@ class OrderControllerIntegrationTest {
 
         Long orderId = createResponse.getBody().id();
 
-        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
             ResponseEntity<OrderResponse> getResponse =
                     restTemplate.getForEntity(url("/orders/" + orderId), OrderResponse.class);
             assertThat(getResponse.getBody()).isNotNull();
