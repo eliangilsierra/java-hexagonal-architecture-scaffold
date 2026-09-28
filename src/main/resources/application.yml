@@ -6,6 +6,9 @@ spring:
     name: hexagonal-architecture-scaffold
   profiles:
     active: ${NOTIFICATION_ADAPTER:console}
+  threads:
+    virtual:
+      enabled: true
   datasource:
     url: jdbc:h2:mem:orders;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
