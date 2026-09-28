@@ -9,6 +9,11 @@ spring:
   threads:
     virtual:
       enabled: true
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
   datasource:
     url: jdbc:h2:mem:orders;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
