@@ -1,0 +1,11 @@
+services:
+  localstack:
+    image: localstack/localstack:3.7
+    container_name: hexagonal-scaffold-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: sns,sqs
+      DEFAULT_REGION: us-east-1
+    volumes:
+      - ./localstack-init:/etc/localstack/init/ready.d

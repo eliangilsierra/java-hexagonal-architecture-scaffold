@@ -9,6 +9,17 @@ spring:
   threads:
     virtual:
       enabled: true
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID:test}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+      region:
+        static: ${AWS_REGION:us-east-1}
+      sns:
+        endpoint: ${AWS_ENDPOINT:http://localhost:4566}
+      sqs:
+        endpoint: ${AWS_ENDPOINT:http://localhost:4566}
   datasource:
     url: jdbc:h2:mem:orders;DB_CLOSE_DELAY=-1
     driver-class-name: org.h2.Driver
@@ -26,3 +37,10 @@ spring:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+app:
+  messaging:
+    # LocalStack always uses this fixed dummy account id, so the ARN is
+    # deterministic across runs (see localstack-init/init-aws.sh).
+    sns-topic-arn: ${ORDERS_TOPIC_ARN:arn:aws:sns:us-east-1:000000000000:orders-created-topic}
+    sqs-queue-name: ${ORDERS_QUEUE_NAME:orders-created-queue}
